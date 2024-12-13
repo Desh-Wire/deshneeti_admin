@@ -30,10 +30,6 @@ export function useAuth() {
             setIsAdmin(session?.user?.email === adminEmail);
             setLoading(false);
 
-            if (event === "SIGNED_IN") {
-                router.push("/dashboard");
-            }
-
             if (event === "SIGNED_OUT") {
                 router.push("/");
             }

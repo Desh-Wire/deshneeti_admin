@@ -20,7 +20,7 @@ export default function LoginPage() {
         const result = await verifyOtp(formData)
 
         if (result?.success) {
-            window.location.href = '/dashboard'
+            window.location.href = '/dashboard/home'
         } else {
             setErrorMessage(result?.message || 'Failed to verify OTP')
         }

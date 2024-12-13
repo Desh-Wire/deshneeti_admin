@@ -11,7 +11,7 @@ export default function Home() {
   const router = useRouter();
 
   if (user) {
-    router.push("/dashboard");
+    router.push("/dashboard/home");
   }
 
   return (

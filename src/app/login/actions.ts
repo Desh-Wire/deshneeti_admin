@@ -12,7 +12,7 @@ export const signInWithMagicLink = validatedAction(
     async(data) => {
         const supabase = await createClient();
         const {email} = data;
-        const redirectTo = 'https:localhost:3000/dashboard';
+        const redirectTo = 'https:localhost:3000/dashboard/home';
 
         const {error} = await supabase.auth.signInWithOtp({
             email,
