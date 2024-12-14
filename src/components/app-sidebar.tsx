@@ -27,28 +27,47 @@ const items = [
         url: "/dashboard/news",
         icon: Newspaper,
     },
-
 ]
 
 export function AppSidebar() {
-
     const pathname = usePathname()
 
     return (
-        <Sidebar>
+        <Sidebar className="w-64 min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 shadow-lg">
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Deshneeti Admin</SidebarGroupLabel>
+                    <SidebarGroupLabel className="px-4 py-3 text-lg font-bold text-gray-700 border-b border-gray-300">
+                        Deshneeti Admin
+                    </SidebarGroupLabel>
                     <SidebarGroupContent>
-                        <SidebarMenu>
+                        <SidebarMenu className="mt-4 space-y-2">
                             {items.map((item) => (
-                                <SidebarMenuItem key={item.title} className={cn({
-                                    "bg-[#f5f5f5]": pathname === item.url,
-                                    "border-l-4 border-red-600": pathname === item.url,
-                                })}>
+                                <SidebarMenuItem
+                                    key={item.title}
+                                    className={cn(
+                                        "flex items-center px-4 py-3 rounded-lg transition-all duration-300 cursor-pointer group",
+                                        {
+                                            "bg-red-50 text-red-600 font-semibold border-l-4 border-red-600":
+                                                pathname === item.url,
+                                            "hover:bg-gray-100 text-gray-700":
+                                                pathname !== item.url,
+                                        }
+                                    )}
+                                >
                                     <SidebarMenuButton asChild>
-                                        <a href={item.url}>
-                                            <item.icon />
+                                        <a
+                                            href={item.url}
+                                            className="flex items-center space-x-3"
+                                        >
+                                            <item.icon
+                                                className={cn(
+                                                    "w-5 h-5 group-hover:stroke-red-600",
+                                                    {
+                                                        "stroke-red-600": pathname === item.url,
+                                                        "stroke-gray-700": pathname !== item.url,
+                                                    }
+                                                )}
+                                            />
                                             <span>{item.title}</span>
                                         </a>
                                     </SidebarMenuButton>

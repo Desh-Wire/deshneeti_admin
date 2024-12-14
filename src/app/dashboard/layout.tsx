@@ -25,13 +25,19 @@ const layout = ({ children }: { children: ReactNode }) => {
     return (
         <SidebarProvider>
             <AppSidebar />
-            <main className='w-full'>
-                <div className='flex flex-row gap-4 items-center py-4 pl-4'>
+            <main className="w-full bg-gray-50 min-h-screen">
+                {/* Navbar Section */}
+                <div className="flex items-center gap-4 py-4 px-6 bg-gradient-to-r from-gray-50 to-gray-100 shadow-md">
                     <SidebarTrigger />
                     <Navbar user={user} />
                 </div>
-                {children}
+
+                {/* Main Content */}
+                <div className="">
+                    {children}
+                </div>
             </main>
+
         </SidebarProvider>
     )
 }

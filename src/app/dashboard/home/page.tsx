@@ -20,7 +20,11 @@ const Dashboard = () => {
 
     // Handle loading state
     if (loading || statsLoading) {
-        return <div className="flex items-center justify-center h-screen">Loading...</div>;
+        return (
+            <div className="flex items-center justify-center h-screen bg-[#ece2c8]">
+                <div className="text-gray-600 font-semibold text-lg">Loading...</div>
+            </div>
+        );
     }
 
     // Handle unauthenticated user
@@ -30,28 +34,28 @@ const Dashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#ece2c8] p-6 w-full">
-            <main className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-2xl font-semibold text-black mb-6">
-                    Welcome to your dashboard!
+        <div className="min-h-screen bg-[#ece2c8] p-6">
+            <main className="bg-white rounded-lg shadow-lg p-6 max-w-6xl mx-auto">
+                <h2 className="text-3xl font-bold text-black mb-6 text-center">
+                    Welcome to Your Dashboard!
                 </h2>
                 <div className="mt-8">
-                    <h3 className="text-lg font-medium mb-4 text-gray-800">Your Statistics</h3>
+                    <h3 className="text-xl font-semibold mb-4 text-gray-800">Your Statistics</h3>
                     {error ? (
-                        <p className="text-red-500">Failed to load stats: {error.message}</p>
+                        <p className="text-red-500 text-center">Failed to load stats: {error.message}</p>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <div className="p-4 bg-gray-50 rounded-lg shadow-md flex flex-col items-center">
-                                <span className="text-xl font-bold text-gray-700">{data?.totalNewsItems || 0}</span>
-                                <span className="text-sm text-gray-500">Total News Items</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                            <div className="p-6 bg-gray-100 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300">
+                                <span className="text-3xl font-extrabold text-gray-800">{data?.totalNewsItems || 0}</span>
+                                <p className="mt-2 text-gray-600">Total News Items</p>
                             </div>
-                            <div className="p-4 bg-gray-50 rounded-lg shadow-md flex flex-col items-center">
-                                <span className="text-xl font-bold text-gray-700">{data?.totalCategories || 0}</span>
-                                <span className="text-sm text-gray-500">Total Categories</span>
+                            <div className="p-6 bg-gray-100 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300">
+                                <span className="text-3xl font-extrabold text-gray-800">{data?.totalCategories || 0}</span>
+                                <p className="mt-2 text-gray-600">Total Categories</p>
                             </div>
-                            <div className="p-4 bg-gray-50 rounded-lg shadow-md flex flex-col items-center">
-                                <span className="text-xl font-bold text-gray-700">{data?.totalViews || 0}</span>
-                                <span className="text-sm text-gray-500">Total Views</span>
+                            <div className="p-6 bg-gray-100 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300">
+                                <span className="text-3xl font-extrabold text-gray-800">{data?.totalViews || 0}</span>
+                                <p className="mt-2 text-gray-600">Total Views</p>
                             </div>
                         </div>
                     )}
