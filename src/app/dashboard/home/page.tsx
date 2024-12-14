@@ -22,7 +22,7 @@ const Dashboard = () => {
     if (loading || statsLoading) {
         return (
             <div className="flex items-center justify-center h-screen bg-[#ece2c8]">
-                <div className="text-gray-600 font-semibold text-lg">Loading...</div>
+                <span className="loader"></span>
             </div>
         );
     }

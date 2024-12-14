@@ -80,7 +80,7 @@ export default function LoginPage() {
                             } focus:outline-none focus:ring focus:ring-blue-300`}
                             disabled={pending}
                         >
-                            {pending ? 'Sending...' : 'Send Magic Link'}
+                            {pending ? 'Sending...' : 'Send OTP'}
                         </button>
                     </form>
                 ) : (

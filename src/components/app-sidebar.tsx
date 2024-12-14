@@ -1,6 +1,6 @@
 'use client'
 
-import { Home, Newspaper } from "lucide-react"
+import { Home, Newspaper, Users, Tag } from "lucide-react"
 
 import {
     Sidebar,
@@ -27,6 +27,16 @@ const items = [
         url: "/dashboard/news",
         icon: Newspaper,
     },
+    {
+        title: "Categories",
+        url: "/dashboard/categories",
+        icon: Tag,
+    },
+    {
+        title: "Authors",
+        url: "/dashboard/authors",
+        icon: Users,
+    },
 ]
 
 export function AppSidebar() {
@@ -45,7 +55,7 @@ export function AppSidebar() {
                                 <SidebarMenuItem
                                     key={item.title}
                                     className={cn(
-                                        "flex items-center px-4 py-3 rounded-lg transition-all duration-300 cursor-pointer group",
+                                        "flex items-center rounded-lg transition-all duration-300 cursor-pointer group",
                                         {
                                             "bg-red-50 text-red-600 font-semibold border-l-4 border-red-600":
                                                 pathname === item.url,
@@ -61,13 +71,13 @@ export function AppSidebar() {
                                         >
                                             <item.icon
                                                 className={cn(
-                                                    "w-5 h-5 group-hover:stroke-red-600",
+                                                    "w-5 h-5",
                                                     {
                                                         "stroke-red-600": pathname === item.url,
                                                         "stroke-gray-700": pathname !== item.url,
                                                     }
                                                 )}
-                                            />
+                                            />  
                                             <span>{item.title}</span>
                                         </a>
                                     </SidebarMenuButton>
