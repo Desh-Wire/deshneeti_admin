@@ -55,3 +55,27 @@ export const addCategory = async (categoryName: string) => {
         throw new Error("Failed to add category");
     }
 };
+
+
+export const updateCategory = async ({ categoryId, categoryName }: { categoryId: string, categoryName: string }) => {
+    try {
+        // Ensure user is logged in
+        const supabase = await createClient();
+        const user = await supabase.auth.getUser();
+        if (!user) {
+            throw new Error("You must be logged in to perform this action");
+        }
+
+        // Update the category
+        const updatedCategory = await db.category.update({
+            where: { id: categoryId },
+            data: { name: categoryName },
+        });
+
+        return updatedCategory;
+
+    } catch (e) {
+        console.log(e);
+        throw new Error("Failed to update category");
+    }
+}

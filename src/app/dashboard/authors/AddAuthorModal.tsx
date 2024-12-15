@@ -17,7 +17,10 @@ const AddAuthorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
         mutationFn: addAuthor,
         onSuccess: () => {
             setIsLoading(false);
+            // Close the modal after adding the author
             onClose();
+            // refresh the page
+            window.location.reload();
         },
         onError: (error) => {
             setIsLoading(false);
@@ -37,7 +40,7 @@ const AddAuthorModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
                     <h2 className="text-2xl font-semibold text-center mb-4">Add Author</h2>
 
                     {/* Author Form */}
-                    <div className="mb-4">
+                    <div className="mb-4 flex flex-col items-center">
                         <Input
                             type="text"
                             placeholder="Author Name"
