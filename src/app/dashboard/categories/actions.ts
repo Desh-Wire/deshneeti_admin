@@ -79,3 +79,26 @@ export const updateCategory = async ({ categoryId, categoryName }: { categoryId:
         throw new Error("Failed to update category");
     }
 }
+
+
+export const deleteCategory = async (categoryId: string) => {
+    try {
+        // Ensure user is logged in
+        const supabase = await createClient();
+        const user = await supabase.auth.getUser();
+        if (!user) {
+            throw new Error("You must be logged in to perform this action");
+        }
+
+        // Delete the category
+        const deletedCategory = await db.category.delete({
+            where: { id: categoryId },
+        });
+
+        return deletedCategory;
+
+    } catch (e) {
+        console.log(e);
+        throw new Error("Failed to delete category");
+    }
+}

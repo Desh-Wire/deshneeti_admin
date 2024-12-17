@@ -2,15 +2,19 @@
 
 import { useProtectedRoute } from "@/utils/auth";
 import { useQuery } from "@tanstack/react-query";
-import { getAuthorsStats } from "./actions";
+import { getAuthorsStats, updateAuthor } from "./actions";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AddAuthorModal from "./AddAuthorModal";
+import UpdateAuthorModal from "./UpdateAuthorModal";
+import { Pencil } from "lucide-react";
 
 const Authors = () => {
     const { user, loading } = useProtectedRoute();
     const router = useRouter();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [selectedAuthor, setSelectedAuthor] = useState<any | null>(null);
 
     const { data, isLoading, error } = useQuery({
         queryKey: ["authors"],
@@ -19,6 +23,22 @@ const Authors = () => {
         retryDelay: 500,
         enabled: !!user,
     });
+
+    const handleUpdateAuthor = async (updatedData: { name: string; photoUrl?: string,fullPath?:string }) => {
+        try {
+            const updatedAuthor = await updateAuthor({
+                authorId: selectedAuthor.id,
+                authorName: updatedData.name,
+                email: selectedAuthor.email,
+                photoUrl: updatedData.photoUrl || null,
+                fullPath: updatedData.fullPath || null,
+            });
+            // Update the UI after the successful update
+            setSelectedAuthor(updatedAuthor);
+        } catch (error) {
+            console.error("Error updating author:", error);
+        }
+    };
 
     if (loading || isLoading) {
         return (
@@ -41,11 +61,10 @@ const Authors = () => {
                         Authors Overview
                     </h2>
 
-                    {/* Button to open the modal */}
                     <div className="text-center mb-6">
                         <button
                             className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={() => setIsAddModalOpen(true)}
                         >
                             Add Author
                         </button>
@@ -61,7 +80,25 @@ const Authors = () => {
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                                     {data?.authors.map((author: any) => (
-                                        <div key={author.id} className="p-6 bg-gray-100 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300">
+                                        <div key={author.id} className="relative p-6 bg-gray-100 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300">
+                                            {/* Show Update Button only if the logged-in user is the one who created the author */}
+                                            {author.email === user.email && (
+                                                <button
+                                                    className="absolute top-2 right-2 text-gray-500 hover:text-blue-500"
+                                                    onClick={() => {
+                                                        setSelectedAuthor(author);
+                                                        setIsUpdateModalOpen(true);
+                                                    }}
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                            )}
+                                            {/* Author Details */}
+                                            <img
+                                                src={author.photoUrl || '/default-avatar.png'}
+                                                alt={author.name}
+                                                className="w-24 h-24 mx-auto rounded-full object-cover mb-4"
+                                            />
                                             <span className="text-3xl font-extrabold text-gray-800">{author.name}</span>
                                             <p className="mt-2 text-gray-600">Total News Items: {author._count.newsItems}</p>
                                         </div>
@@ -73,9 +110,19 @@ const Authors = () => {
                 </main>
             </div>
 
-            <AddAuthorModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            {/* Modals */}
+            <AddAuthorModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+            {selectedAuthor && (
+                <UpdateAuthorModal
+                    isOpen={isUpdateModalOpen}
+                    onClose={() => setIsUpdateModalOpen(false)}
+                    onUpdate={handleUpdateAuthor}
+                    currentAuthor={selectedAuthor}
+                />
+            )}
         </>
     );
 };
 
 export default Authors;
+
