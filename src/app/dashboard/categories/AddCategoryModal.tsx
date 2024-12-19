@@ -11,7 +11,6 @@ const AddCategoryModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
     const [categoryName, setCategoryName] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    // Use the correct type for mutation here
     const categoryMutation = useMutation({
         mutationKey: ["addCategory"],
         mutationFn: addCategory,

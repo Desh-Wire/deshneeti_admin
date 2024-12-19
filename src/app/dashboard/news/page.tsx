@@ -1,12 +1,24 @@
 'use client';
 
 import { useProtectedRoute } from "@/utils/auth";
-import NewsForm from "./NewsForm";
 import { useState } from "react";
+import { Search, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import NewsForm from "./NewsForm";
 
 const Dashboard = () => {
     const { user, loading } = useProtectedRoute();
-    const [expandedSection, setExpandedSection] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     if (!user) {
         return null;
@@ -20,69 +32,53 @@ const Dashboard = () => {
         );
     }
 
-    const toggleSection = (section: string) => {
-        setExpandedSection(prev => prev === section ? null : section);
-    };
-
     return (
         <div className="min-h-screen bg-[#ece2c8] p-6 w-full">
             <main className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-xl font-semibold text-black mb-6">
-                    Manage News Articles
-                </h2>
-
-                {/* CRUD Operations Expandable Divs */}
-                <div className="space-y-4">
-                    {/* Create News Section */}
-                    <div
-                        onClick={() => toggleSection("create")}
-                        className="cursor-pointer p-4 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition-all"
-                    >
-                        <h3 className="text-lg font-semibold">Create News</h3>
-                        {expandedSection === "create" && (
-                            <div className="mt-4">
-                                <NewsForm />
-                            </div>
-                        )}
+                <div className="flex flex-col space-y-6">
+                    {/* Header with Title */}
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-2xl font-bold text-gray-800">
+                            Manage News Articles
+                        </h2>
+                        
+                        {/* Create News Button with Modal */}
+                        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="bg-blue-600 hover:bg-blue-700">
+                                    <Plus className="w-4 h-4 mr-2" />
+                                    Create News
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                                <DialogHeader>
+                                    <DialogTitle>Create News Article</DialogTitle>
+                                    <DialogDescription>
+                                        Fill in the details below to create a new news article.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <NewsForm user={user}/>
+                            </DialogContent>
+                        </Dialog>
                     </div>
 
-                    {/* Read News Section */}
-                    <div
-                        onClick={() => toggleSection("read")}
-                        className="cursor-pointer p-4 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition-all"
-                    >
-                        <h3 className="text-lg font-semibold">Read News</h3>
-                        {expandedSection === "read" && (
-                            <div className="mt-4">
-                                <p>Display your news reading logic here.</p>
-                            </div>
-                        )}
+                    {/* Search Bar */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Input
+                            type="search"
+                            placeholder="Search news articles..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 w-full"
+                        />
                     </div>
 
-                    {/* Update News Section */}
-                    <div
-                        onClick={() => toggleSection("update")}
-                        className="cursor-pointer p-4 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition-all"
-                    >
-                        <h3 className="text-lg font-semibold">Update News</h3>
-                        {expandedSection === "update" && (
-                            <div className="mt-4">
-                                <p>Display your news update form here.</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Delete News Section */}
-                    <div
-                        onClick={() => toggleSection("delete")}
-                        className="cursor-pointer p-4 bg-gray-100 rounded-lg shadow-md hover:bg-gray-200 transition-all"
-                    >
-                        <h3 className="text-lg font-semibold">Delete News</h3>
-                        {expandedSection === "delete" && (
-                            <div className="mt-4">
-                                <p>Display your news deletion logic here.</p>
-                            </div>
-                        )}
+                    {/* Content Area - Placeholder for news list */}
+                    <div className="mt-6">
+                        <p className="text-gray-500 text-center py-8">
+                            Your news articles will appear here
+                        </p>
                     </div>
                 </div>
             </main>

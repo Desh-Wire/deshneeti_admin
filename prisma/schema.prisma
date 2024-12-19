@@ -21,6 +21,7 @@ model Author {
   fullPath  String
   email     String
   newsItems NewsItem[]
+  active Boolean @default(true)
 }
 
 model NewsItem {
