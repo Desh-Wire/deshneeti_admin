@@ -21,6 +21,8 @@ import { useQuery } from "@tanstack/react-query";
 import { getCategories, getAuthors } from "./actions";
 import { User } from "@supabase/supabase-js";
 import Select from 'react-select';
+import 'draft-js/dist/Draft.css';
+import RichTextEditor from "./RichTextEditor";
 
 interface NewsFormData {
     pictureUrl: string;
@@ -109,9 +111,9 @@ const NewsForm = ({ user }: { user: User }) => {
         }
     }, [categoryError, authorError]);
 
-    // useEffect(() => {
-    //     console.log(form.getValues());
-    // }, [form.watch()]);
+    useEffect(() => {
+        console.log(form.getValues());
+    }, [form.watch()]);
 
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -183,12 +185,16 @@ const NewsForm = ({ user }: { user: User }) => {
             <FormField
                 control={form.control}
                 name={`content_${lang}`}
-                rules={{ required: `${labelPrefix} Content is required`, minLength: { value: 50, message: `${labelPrefix} Content should be at least 50 characters long` } }}
+                rules={{ required: `${labelPrefix} Content is required` }}
                 render={({ field }) => (
                     <FormItem>
                         <FormLabel className="text-sm font-semibold">Content</FormLabel>
                         <FormControl>
-                            <Textarea placeholder={`Enter ${labelPrefix} content`} className="min-h-[200px] border-gray-300 resize-none" {...field} />
+                            <RichTextEditor
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder={`Enter ${labelPrefix} content`}
+                            />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
