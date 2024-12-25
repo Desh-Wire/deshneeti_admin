@@ -14,15 +14,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { ImageIcon, X } from "lucide-react";
+import { ImageIcon, Loader2, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useQuery } from "@tanstack/react-query";
-import { getCategories, getAuthors } from "./actions";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getCategories, getAuthors, uploadNewsImage, createNews } from "./actions";
 import { User } from "@supabase/supabase-js";
 import Select from 'react-select';
 import 'draft-js/dist/Draft.css';
 import RichTextEditor from "./RichTextEditor";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface NewsFormData {
     pictureUrl: string;
@@ -63,6 +63,8 @@ const NewsForm = ({ user }: { user: User }) => {
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const [status, setStatus] = useState<"idle" | "uploading-image" | "creating-news" | "success" | "error">("idle");
 
     const form = useForm<NewsFormData>({
         defaultValues: {
@@ -99,6 +101,28 @@ const NewsForm = ({ user }: { user: User }) => {
         enabled: !!user,
     });
 
+    const uploadImageMutation = useMutation({
+        mutationFn: uploadNewsImage,
+        onError: (error) => {
+            setStatus("error");
+            setError(error instanceof Error ? error.message : "Image upload failed");
+        },
+    });
+
+    const createNewsMutation = useMutation({
+        mutationFn: createNews,
+        onSuccess: () => {
+            setStatus("success");
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        },
+        onError: (error) => {
+            setStatus("error");
+            setError(error instanceof Error ? error.message : "Failed to create news");
+        },
+    });
+
     useEffect(() => {
         if (categoryData && authorData) {
             setLoading(false);
@@ -111,9 +135,9 @@ const NewsForm = ({ user }: { user: User }) => {
         }
     }, [categoryError, authorError]);
 
-    useEffect(() => {
-        console.log(form.getValues());
-    }, [form.watch()]);
+    // useEffect(() => {
+    //     console.log(form.getValues());
+    // }, [form.watch()]);
 
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -121,9 +145,11 @@ const NewsForm = ({ user }: { user: User }) => {
             const file = acceptedFiles[0];
             const previewUrl = URL.createObjectURL(file);
             setPreview(previewUrl);
+            setUploadedFile(file);
             form.setValue("pictureUrl", file.name);
         }
     }, [form]);
+
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -142,14 +168,49 @@ const NewsForm = ({ user }: { user: User }) => {
         form.setValue("pictureUrl", "");
     };
 
-    const onSubmit = (data: NewsFormData) => {
-        const formattedData = {
-            ...data,
-            tags: data.tags.split(",").map((tag: string) => tag.trim()),
-            readTime: parseInt(data.readTime, 10),
-        };
-        console.log("Submitted News Data:", formattedData);
+    const onSubmit = async (data: NewsFormData) => {
+        try {
+            setError(null);
+
+            if (!uploadedFile) {
+                setError("Please upload an image");
+                return;
+            }
+
+            setStatus("uploading-image");
+            const imageResult = await uploadImageMutation.mutateAsync({
+                file: uploadedFile,
+            });
+
+            let photoUrl = imageResult.publicUrl;
+            let photoPath = imageResult.fullPath;
+
+            //print the whole data to be sent to the server
+
+            setStatus("creating-news");
+            await createNewsMutation.mutateAsync({
+                pictureUrl: photoUrl,
+                picturePath: photoPath,
+                authorId: data.authorId,
+                categoryId: data.categoryId,
+                tags: data.tags.split(",").map((tag) => tag.trim()),
+                readTime: parseInt(data.readTime),
+                headingEng: data.heading_en,
+                taglineEng: data.tagLine_en,
+                contentEng: data.content_en,
+                headingHin: data.heading_hi,
+                taglineHin: data.tagLine_hi,
+                contentHin: data.content_hi,
+                headingUrd: data.heading_ur,
+                taglineUrd: data.tagLine_ur,
+                contentUrd: data.content_ur,
+            });
+        } catch (error) {
+            setStatus("error");
+            setError(error instanceof Error ? error.message : "Something went wrong");
+        }
     };
+
 
     const languageFields = (lang: 'en' | 'hi' | 'ur', labelPrefix: string) => (
         <div className="space-y-4 border p-4 rounded-md mb-4">
@@ -209,6 +270,17 @@ const NewsForm = ({ user }: { user: User }) => {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6"
             >
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
+
+                {status === "success" && (
+                    <Alert>
+                        <AlertDescription>News article published successfully!</AlertDescription>
+                    </Alert>
+                )}
                 {/* Main Content Section */}
                 <div className="space-y-4">
                     {/* Image Upload */}
@@ -389,8 +461,13 @@ const NewsForm = ({ user }: { user: User }) => {
                         <Button
                             type="submit"
                             className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                            disabled={status !== "idle"}
                         >
-                            Publish Article
+                            {status !== "idle" && <Loader2 className="animate-spin w-4 h-4 mr-2" />}
+                            {status === "uploading-image" ? "Uploading Image..." :
+                                status === "creating-news" ? "Publishing Article..." :
+                                    status === "success" ? "Published!" :
+                                        "Publish Article"}
                         </Button>
                     </div>
                 </div>
