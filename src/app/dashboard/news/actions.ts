@@ -189,3 +189,45 @@ export const createNews = async ({
         throw error;
     }
 };
+
+export const searchNews = async (query: string) => {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) throw new Error("Unauthorized");
+
+    return db.newsItem.findMany({
+        where: {
+            OR: [
+                { headingEng: { contains: query, mode: 'insensitive' } },
+                { headingHin: { contains: query, mode: 'insensitive' } },
+                { headingUrd: { contains: query, mode: 'insensitive' } },
+                { taglineEng: { contains: query, mode: 'insensitive' } },
+                { taglineHin: { contains: query, mode: 'insensitive' } },
+                { taglineUrd: { contains: query, mode: 'insensitive' } },
+                { contentEng: { contains: query, mode: 'insensitive' } },
+                { contentHin: { contains: query, mode: 'insensitive' } },
+                { contentUrd: { contains: query, mode: 'insensitive' } },
+                { tags: { hasSome: [query] } },
+                { author: { name: { contains: query, mode: 'insensitive' } } },
+                { category: { name: { contains: query, mode: 'insensitive' } } }
+            ]
+        },
+        include: {
+            author: {
+                select: {
+                    name: true,
+                    photoUrl: true
+                }
+            },
+            category: {
+                select: {
+                    name: true
+                }
+            }
+        },
+        orderBy: {
+            createdAt: 'desc'
+        }
+    });
+};
