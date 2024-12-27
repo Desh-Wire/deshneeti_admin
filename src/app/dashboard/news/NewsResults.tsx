@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Eye, Calendar, Tag, Type, Quote, FileText, Trash2, Edit } from 'lucide-react';
 import Image from 'next/image';
 import { convertFromRaw, Editor, EditorState } from 'draft-js';
+import { deleteNews } from './actions'; // adjust the import path as needed
+import { User } from '@supabase/supabase-js';
 
 interface NewsItem {
     id: string;
@@ -20,6 +22,7 @@ interface NewsItem {
     author: {
         name: string;
         photoUrl: string;
+        email: string,
     };
     category: {
         name: string;
@@ -30,8 +33,29 @@ interface NewsItem {
     tags: string[];
 }
 
-const NewsResults = ({ results }: { results: NewsItem[] }) => {
+const NewsResults = ({ results, user }: { results: NewsItem[], user: User }) => {
+
+
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState<string | null>(null);
+
+    const handleDelete = async (newsId: string, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent expanding/collapsing when clicking delete
+        if (window.confirm('Are you sure you want to delete this news item?')) {
+            setIsDeleting(newsId);
+            try {
+                await deleteNews(newsId);
+                // You might want to refresh the news list here or show a success message
+            } catch (error) {
+                console.error('Failed to delete news:', error);
+                alert('Failed to delete news item');
+            } finally {
+                setIsDeleting(null);
+                //reload the page
+                window.location.reload();
+            }
+        }
+    };
 
     const parseContent = (content: string) => {
         try {
@@ -43,103 +67,165 @@ const NewsResults = ({ results }: { results: NewsItem[] }) => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {results.map((item) => {
                 const editorStateEng = parseContent(item.contentEng);
                 const editorStateHin = parseContent(item.contentHin);
                 const editorStateUrd = parseContent(item.contentUrd);
 
                 return (
-                    <div key={item.id} className="border rounded-lg p-4 bg-white shadow-sm">
-                        {/* Header Section */}
+                    <div
+                        key={item.id}
+                        className="border-l-4 border-red-600 rounded-r-xl p-6 bg-white shadow-sm transition-all duration-200 hover:shadow-md relative"
+                    >
+                        {/* Action Buttons */}
+                        {
+                            // only show edit and delete if the logged in user created the news item or is the admin
+                            (item.author.email === user.email || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL) &&
+                            <div className="absolute top-4 right-4 flex gap-2 z-10">
+                                <button
+                                    onClick={(e) => handleDelete(item.id, e)}
+                                    disabled={isDeleting === item.id}
+                                    className={`p-2 rounded-full hover:bg-red-50 text-red-600 transition-colors ${isDeleting === item.id ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
+                                    title="Delete news"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Handle edit - we'll implement this later
+                                    }}
+                                    className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+                                    title="Edit news"
+                                >
+                                    <Edit size={20} />
+                                </button>
+                            </div>
+                        }
                         <div
-                            className="flex justify-between items-start cursor-pointer"
-                            onClick={() =>
-                                setExpandedId(expandedId === item.id ? null : item.id)
-                            }
+                            className="flex justify-between items-start cursor-pointer group"
+                            onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                         >
-                            <div className="flex items-start gap-4 flex-1">
-                                <Image
-                                    src={item.author.photoUrl}
-                                    alt={item.author.name}
-                                    width={40}
-                                    height={40}
-                                    className="rounded-full shadow-md"
-                                />
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-800">
+                            <div className="flex items-start gap-6 flex-1">
+                                <div className="relative">
+                                    <Image
+                                        src={item.author.photoUrl}
+                                        alt={item.author.name}
+                                        width={48}
+                                        height={48}
+                                        className="rounded-full ring-2 ring-red-100"
+                                    />
+                                    <span className="absolute -bottom-1 -right-1 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                                        {item.category.name}
+                                    </span>
+                                </div>
+                                <div className="space-y-2">
+                                    <h3 className="text-xl font-medium text-gray-900 leading-tight group-hover:text-red-600">
                                         {item.headingEng}
                                     </h3>
-                                    <div className="text-sm text-gray-600 flex gap-2 flex-wrap">
-                                        <span className="font-medium">{item.author.name}</span>
-                                        <span>•</span>
-                                        <span className="italic">{item.category.name}</span>
-                                        <span>•</span>
-                                        <span>{new Date(item.createdAt).toLocaleDateString()}</span>
-                                        <span>•</span>
-                                        <span>{item.readTime} min read</span>
-                                        <span>•</span>
-                                        <span>{item.views} views</span>
+                                    <div className="flex flex-wrap items-center gap-4 text-sm">
+                                        <span className="font-medium text-black">{item.author.name}</span>
+                                        <div className="flex items-center gap-1 text-gray-600">
+                                            <Calendar size={14} className="text-red-600" />
+                                            {new Date(item.createdAt).toLocaleDateString()}
+                                        </div>
+                                        <div className="flex items-center gap-1 text-gray-600">
+                                            <Clock size={14} className="text-red-600" />
+                                            {item.readTime}m read
+                                        </div>
+                                        <div className="flex items-center gap-1 text-gray-600">
+                                            <Eye size={14} className="text-red-600" />
+                                            {item.views.toLocaleString()}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            {expandedId === item.id ? <ChevronUp /> : <ChevronDown />}
+                            <div className="text-red-400 group-hover:text-red-600">
+                                {expandedId === item.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                            </div>
                         </div>
 
-                        {/* Expanded Content */}
                         {expandedId === item.id && (
-                            <div className="mt-4 space-y-6">
-                                {/* Main Image */}
-                                <div>
-                                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                                        Featured Image:
-                                    </h4>
-                                    <Image
-                                        src={item.pictureUrl}
-                                        alt={item.headingEng}
-                                        width={400}
-                                        height={250}
-                                        className="rounded-lg object-cover shadow-md"
-                                    />
-                                </div>
+                            <div className="mt-8 space-y-8">
 
-                                {/* Sections */}
+                                <Image
+                                    src={item.pictureUrl}
+                                    alt={item.headingEng}
+                                    className="object-cover"
+                                    height={580}
+                                    width={500}
+                                />
+
+
                                 {[
                                     { title: 'English', heading: item.headingEng, tagline: item.taglineEng, content: editorStateEng },
                                     { title: 'Hindi', heading: item.headingHin, tagline: item.taglineHin, content: editorStateHin },
                                     { title: 'Urdu', heading: item.headingUrd, tagline: item.taglineUrd, content: editorStateUrd },
                                 ].map(({ title, heading, tagline, content }) => (
-                                    <div key={title}>
-                                        <h4 className="text-lg font-semibold text-gray-800">{title}:</h4>
-                                        <p className="text-sm text-gray-600 mt-2">Heading:</p>
-                                        <p className="text-xl font-bold text-gray-900">{heading}</p>
-                                        <p className="text-sm text-gray-600 mt-2">Tagline:</p>
-                                        <p className="text-gray-700 font-medium">{tagline}</p>
-                                        <p className="text-sm text-gray-600 mt-2">Content:</p>
-                                        {content ? (
-                                            <div className="border rounded-md p-4 bg-gray-50 shadow-sm">
-                                                <Editor
-                                                    editorState={content}
-                                                    readOnly
-                                                    onChange={() => { }}
-                                                />
+                                    <div key={title} className="space-y-6 bg-gray-50 p-6 rounded-lg">
+                                        <div className="flex items-center gap-2 text-lg font-medium text-black">
+                                            <span className="w-2 h-2 bg-red-600 rounded-full"></span>
+                                            {title}
+                                        </div>
+
+                                        <div className="grid gap-6">
+                                            <div className="relative">
+                                                <div className="flex items-center gap-2 text-red-600 mb-2">
+                                                    <Type size={16} />
+                                                    <span className="text-sm font-medium">Heading</span>
+                                                </div>
+                                                <p className="text-lg font-medium text-black pl-6">
+                                                    {heading}
+                                                </p>
                                             </div>
-                                        ) : (
-                                            <p className="text-gray-700">
-                                                Unable to render {title} content.
-                                            </p>
-                                        )}
+
+                                            <div className="relative">
+                                                <div className="flex items-center gap-2 text-red-600 mb-2">
+                                                    <Quote size={16} />
+                                                    <span className="text-sm font-medium">Tagline</span>
+                                                </div>
+                                                <p className="text-gray-700 pl-6">
+                                                    {tagline}
+                                                </p>
+                                            </div>
+
+                                            <div className="relative">
+                                                <div className="flex items-center gap-2 text-red-600 mb-2">
+                                                    <FileText size={16} />
+                                                    <span className="text-sm font-medium">Content</span>
+                                                </div>
+                                                <div className="pl-6">
+                                                    {content ? (
+                                                        <div className="prose prose-gray max-w-none">
+                                                            <Editor
+                                                                editorState={content}
+                                                                readOnly
+                                                                onChange={() => { }}
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-gray-500 italic">
+                                                            Unable to render {title} content.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
 
-                                {/* Tags */}
-                                <div>
-                                    <h4 className="text-sm font-medium text-gray-700">Tags:</h4>
-                                    <div className="flex gap-2 flex-wrap mt-2">
+                                <div className="pt-4">
+                                    <div className="flex items-center gap-2 text-red-600 mb-3">
+                                        <Tag size={16} />
+                                        <span className="text-sm font-medium">Tags</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
                                         {item.tags.map((tag) => (
                                             <span
                                                 key={tag}
-                                                className="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg text-sm shadow-sm"
+                                                className="px-3 py-1 text-sm text-black bg-red-50 rounded-full hover:bg-red-100 transition-colors duration-200"
                                             >
                                                 {tag}
                                             </span>

@@ -217,7 +217,8 @@ export const searchNews = async (query: string) => {
             author: {
                 select: {
                     name: true,
-                    photoUrl: true
+                    photoUrl: true,
+                    email: true
                 }
             },
             category: {
@@ -230,4 +231,130 @@ export const searchNews = async (query: string) => {
             createdAt: 'desc'
         }
     });
+};
+
+export const deleteNews = async (newsId: string) => {
+    try {
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+            throw new Error("You must be logged in to delete news items");
+        }
+
+        // First get the news item to get the picture path
+        const newsItem = await db.newsItem.findUnique({
+            where: { id: newsId },
+            select: { picturePath: true }
+        });
+
+        if (newsItem?.picturePath) {
+            // Delete the associated image from storage
+            const { error: deleteImageError } = await supabase
+                .storage
+                .from("deshneeti")
+                .remove([newsItem.picturePath]);
+
+            if (deleteImageError) {
+                console.error("Error deleting image:", deleteImageError);
+            }
+        }
+
+        // Delete the news item from the database
+        const deletedNews = await db.newsItem.delete({
+            where: { id: newsId }
+        });
+
+        return deletedNews;
+
+    } catch (error) {
+        console.error("Error deleting news item:", error);
+        throw error;
+    }
+};
+
+export const updateNews = async ({
+    newsId,
+    headingEng,
+    headingHin,
+    headingUrd,
+    taglineEng,
+    taglineHin,
+    taglineUrd,
+    pictureUrl,
+    picturePath,
+    contentEng,
+    contentHin,
+    contentUrd,
+    authorId,
+    categoryId,
+    tags,
+    readTime,
+    oldPicturePath
+}: {
+    newsId: string;
+    headingEng: string;
+    headingHin: string;
+    headingUrd: string;
+    taglineEng: string;
+    taglineHin: string;
+    taglineUrd: string;
+    pictureUrl: string;
+    picturePath: string;
+    contentEng: string;
+    contentHin: string;
+    contentUrd: string;
+    authorId: string;
+    categoryId: string;
+    tags: string[];
+    readTime: number;
+    oldPicturePath?: string | null;
+}) => {
+    try {
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+            throw new Error("You must be logged in to update news items");
+        }
+
+        // If there's a new picture and an old picture path, delete the old picture
+        if (oldPicturePath && picturePath !== oldPicturePath) {
+            const { error: deleteError } = await supabase
+                .storage
+                .from("deshneeti")
+                .remove([oldPicturePath]);
+
+            if (deleteError) {
+                console.error("Error deleting old image:", deleteError);
+            }
+        }
+
+        const updatedNews = await db.newsItem.update({
+            where: { id: newsId },
+            data: {
+                headingEng,
+                headingHin,
+                headingUrd,
+                taglineEng,
+                taglineHin,
+                taglineUrd,
+                pictureUrl,
+                picturePath,
+                contentEng,
+                contentHin,
+                contentUrd,
+                authorId,
+                categoryId,
+                tags,
+                readTime
+            }
+        });
+
+        return updatedNews;
+
+    } catch (error) {
+        console.error("Error updating news item:", error);
+        throw error;
+    }
 };

@@ -30,7 +30,7 @@ const Dashboard = () => {
         imageUrl: string; 
         publishedAt: string; 
         views: number; 
-        author: { name: string; photoUrl: string; }; 
+        author: { name: string; photoUrl: string; email: string; }; 
         category: { name: string; }; 
         pictureUrl: string;
         createdAt: string;
@@ -112,7 +112,7 @@ const Dashboard = () => {
 
                     {/* Results */}
                     <div className="mt-6">
-                        {searchMutation.isSuccess && <NewsResults results={results} />}
+                        {searchMutation.isSuccess && <NewsResults results={results} user={user}/>}
                     </div>
                 </div>
             </main>
