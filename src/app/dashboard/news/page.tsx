@@ -30,9 +30,10 @@ const Dashboard = () => {
         imageUrl: string; 
         publishedAt: string; 
         views: number; 
-        author: { name: string; photoUrl: string; email: string; }; 
-        category: { name: string; }; 
+        author: { id: string; name: string; photoUrl: string; email: string; }; 
+        category: { id:string, name: string; }; 
         pictureUrl: string;
+        picturePath: string;
         createdAt: string;
         readTime: number;
         tags: string[];
@@ -46,11 +47,17 @@ const Dashboard = () => {
                 imageUrl: item.imageUrl || '',
                 publishedAt: item.publishedAt || '',
                 pictureUrl: item.pictureUrl || '',
+                picturePath: item.picturePath || '',
                 createdAt: item.createdAt || '',
                 readTime: item.readTime || 0,
-                tags: item.tags || []
+                tags: item.tags || [],
+                author: {
+                    ...item.author,
+                    id: item.author.id || '',
+                },
             }));
             setResults(formattedData);
+            // console.log('formattedData:', formattedData);
         }
     });
 

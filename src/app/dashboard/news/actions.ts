@@ -47,80 +47,6 @@ export const getCategories = async () => {
     }
 };
 
-export const uploadNewsImage = async ({
-    file,
-    oldPhotoUrl,
-    oldFullPath
-}: {
-    file: File;
-    oldPhotoUrl?: string | null;
-    oldFullPath?: string | null;
-}) => {
-    try {
-        const supabase = await createClient();
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) {
-            throw new Error("You must be logged in to upload images");
-        }
-
-        // Delete old photo if it exists using fullPath
-        if (oldFullPath) {
-            const { error: deleteError, data: deleteData } = await supabase
-                .storage
-                .from("deshneeti")
-                .remove([oldFullPath]);
-
-            console.log("Delete attempt result:", { deleteError, deleteData });
-
-            if (deleteError) {
-                console.error("Error deleting old image:", deleteError);
-            }
-        }
-
-        // Validate file
-        if (!file.type.startsWith("image/")) {
-            throw new Error("File must be an image");
-        }
-
-        const MAX_FILE_SIZE = 500 * 1024;
-        if (file.size > MAX_FILE_SIZE) {
-            throw new Error("File size must be less than 500KB");
-        }
-
-        // Generate new file path
-        const fileExt = file.name.split(".").pop();
-        const fileName = `news/${uuidv4()}.${fileExt}`;
-
-        // Upload new file
-        const { error: uploadError, data } = await supabase
-            .storage
-            .from("deshneeti")
-            .upload(fileName, file, {
-                contentType: file.type,
-                cacheControl: "3600",
-                upsert: false,
-            });
-
-        if (uploadError) {
-            throw new Error(`Failed to upload image: ${uploadError.message}`);
-        }
-
-        // Get the full path and public URL
-        const fullPath = data.path; // Using path from upload response
-
-        const { data: { publicUrl } } = supabase
-            .storage
-            .from("deshneeti")
-            .getPublicUrl(fileName);
-
-        return { publicUrl, fullPath };
-
-    } catch (error) {
-        console.error("Error uploading image:", error);
-        throw error;
-    }
-};
-
 export const createNews = async ({
     headingEng,
     headingHin,
@@ -214,18 +140,8 @@ export const searchNews = async (query: string) => {
             ]
         },
         include: {
-            author: {
-                select: {
-                    name: true,
-                    photoUrl: true,
-                    email: true
-                }
-            },
-            category: {
-                select: {
-                    name: true
-                }
-            }
+            author: true,
+            category: true,
         },
         orderBy: {
             createdAt: 'desc'
@@ -269,6 +185,80 @@ export const deleteNews = async (newsId: string) => {
 
     } catch (error) {
         console.error("Error deleting news item:", error);
+        throw error;
+    }
+};
+
+export const uploadNewsImage = async ({
+    file,
+    oldPhotoUrl,
+    oldFullPath
+}: {
+    file: File;
+    oldPhotoUrl?: string | null;
+    oldFullPath?: string | null;
+}) => {
+    try {
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            throw new Error("You must be logged in to upload images");
+        }
+
+        // Delete old photo if it exists using fullPath
+        if (oldFullPath) {
+            const { error: deleteError, data: deleteData } = await supabase
+                .storage
+                .from("deshneeti")
+                .remove([oldFullPath]);
+
+            console.log("Delete attempt result:", { deleteError, deleteData });
+
+            if (deleteError) {
+                console.error("Error deleting old image:", deleteError);
+            }
+        }
+
+        // Validate file
+        if (!file.type.startsWith("image/")) {
+            throw new Error("File must be an image");
+        }
+
+        const MAX_FILE_SIZE = 500 * 1024;
+        if (file.size > MAX_FILE_SIZE) {
+            throw new Error("File size must be less than 500KB");
+        }
+
+        // Generate new file path
+        const fileExt = file.name.split(".").pop();
+        const fileName = `news/${uuidv4()}.${fileExt}`;
+
+        // Upload new file
+        const { error: uploadError, data } = await supabase
+            .storage
+            .from("deshneeti")
+            .upload(fileName, file, {
+                contentType: file.type,
+                cacheControl: "3600",
+                upsert: false,
+            });
+
+        if (uploadError) {
+            throw new Error(`Failed to upload image: ${uploadError.message}`);
+        }
+
+        // Get the full path and public URL
+        const fullPath = data.path; // Using path from upload response
+
+        const { data: { publicUrl } } = supabase
+            .storage
+            .from("deshneeti")
+            .getPublicUrl(fileName);
+
+        return { publicUrl, fullPath };
+
+    } catch (error) {
+        console.error("Error uploading image:", error);
         throw error;
     }
 };

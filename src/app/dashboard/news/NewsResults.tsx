@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { convertFromRaw, Editor, EditorState } from 'draft-js';
 import { deleteNews } from './actions'; // adjust the import path as needed
 import { User } from '@supabase/supabase-js';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import NewsForm from './NewsForm';
 
 interface NewsItem {
     id: string;
@@ -16,15 +18,18 @@ interface NewsItem {
     taglineHin: string;
     taglineUrd: string;
     pictureUrl: string;
+    picturePath: string;
     contentEng: string;
     contentHin: string;
     contentUrd: string;
     author: {
+        id: string;
         name: string;
         photoUrl: string;
         email: string,
     };
     category: {
+        id: string;
         name: string;
     };
     createdAt: string;
@@ -38,6 +43,14 @@ const NewsResults = ({ results, user }: { results: NewsItem[], user: User }) => 
 
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
+    const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleEdit = (news: NewsItem, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditingNews(news);
+        setIsModalOpen(true);
+    };
 
     const handleDelete = async (newsId: string, e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent expanding/collapsing when clicking delete
@@ -73,11 +86,13 @@ const NewsResults = ({ results, user }: { results: NewsItem[], user: User }) => 
                 const editorStateHin = parseContent(item.contentHin);
                 const editorStateUrd = parseContent(item.contentUrd);
 
+
                 return (
                     <div
                         key={item.id}
                         className="border-l-4 border-red-600 rounded-r-xl p-6 bg-white shadow-sm transition-all duration-200 hover:shadow-md relative"
                     >
+
                         {/* Action Buttons */}
                         {
                             // only show edit and delete if the logged in user created the news item or is the admin
@@ -92,16 +107,32 @@ const NewsResults = ({ results, user }: { results: NewsItem[], user: User }) => 
                                 >
                                     <Trash2 size={20} />
                                 </button>
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        // Handle edit - we'll implement this later
-                                    }}
-                                    className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
-                                    title="Edit news"
-                                >
-                                    <Edit size={20} />
-                                </button>
+                                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                                    <DialogTrigger asChild>
+                                        <button
+                                            onClick={(e) => handleEdit(item, e)}
+                                            className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+                                            title="Edit news"
+                                        >
+                                            <Edit size={20} />
+                                        </button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                                        <DialogHeader>
+                                            <DialogTitle>Edit News Article</DialogTitle>
+                                        </DialogHeader>
+                                        {editingNews && (
+                                            <NewsForm
+                                                user={user}
+                                                newsItem={editingNews}
+                                                // onClose={() => {
+                                                //     setIsModalOpen(false);
+                                                //     setEditingNews(null);
+                                                // }}
+                                            />
+                                        )}
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                         }
                         <div

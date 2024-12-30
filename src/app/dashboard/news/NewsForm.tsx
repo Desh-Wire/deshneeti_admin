@@ -4,25 +4,53 @@ import { useForm } from "react-hook-form";
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+    Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Loader2, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getCategories, getAuthors, uploadNewsImage, createNews } from "./actions";
+import { getCategories, getAuthors, uploadNewsImage, createNews, updateNews } from "./actions";
 import { User } from "@supabase/supabase-js";
 import Select from 'react-select';
 import 'draft-js/dist/Draft.css';
 import RichTextEditor from "./RichTextEditor";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+
+interface NewsFormProps {
+    user: User;
+    newsItem?: NewsItem;
+}
+
+interface NewsItem {
+    id: string;
+    headingEng: string;
+    headingHin: string;
+    headingUrd: string;
+    taglineEng: string;
+    taglineHin: string;
+    taglineUrd: string;
+    pictureUrl: string;
+    picturePath: string;
+    contentEng: string;
+    contentHin: string;
+    contentUrd: string;
+    author: {
+        id: string;
+        name: string;
+        photoUrl: string;
+        email: string,
+    };
+    category: {
+        id: string;
+        name: string;
+    };
+    createdAt: string;
+    readTime: number;
+    views: number;
+    tags: string[];
+}
 
 interface NewsFormData {
     pictureUrl: string;
@@ -41,7 +69,6 @@ interface NewsFormData {
     content_ur: string;
 }
 
-
 const customStyles = {
     control: (provided: any) => ({
         ...provided,
@@ -59,7 +86,7 @@ const customStyles = {
     }),
 };
 
-const NewsForm = ({ user }: { user: User }) => {
+const NewsForm = ({ user, newsItem }: NewsFormProps) => {
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -68,24 +95,30 @@ const NewsForm = ({ user }: { user: User }) => {
 
     const form = useForm<NewsFormData>({
         defaultValues: {
-            pictureUrl: "",
-            authorId: "",
-            categoryId: "",
-            tags: "",
-            readTime: "",
-            heading_en: "",
-            tagLine_en: "",
-            content_en: "",
-            heading_hi: "",
-            tagLine_hi: "",
-            content_hi: "",
-            heading_ur: "",
-            tagLine_ur: "",
-            content_ur: "",
+            pictureUrl: newsItem?.pictureUrl || "",
+            authorId: newsItem?.author.id || "",
+            categoryId: newsItem?.category.id || "",
+            tags: newsItem?.tags.join(", ") || "",
+            readTime: newsItem?.readTime.toString() || "",
+            heading_en: newsItem?.headingEng || "",
+            tagLine_en: newsItem?.taglineEng || "",
+            content_en: newsItem?.contentEng || "",
+            heading_hi: newsItem?.headingHin || "",
+            tagLine_hi: newsItem?.taglineHin || "",
+            content_hi: newsItem?.contentHin || "",
+            heading_ur: newsItem?.headingUrd || "",
+            tagLine_ur: newsItem?.taglineUrd || "",
+            content_ur: newsItem?.contentUrd || "",
         }
     });
 
-    const { data: categoryData, isLoading: categoryLoading, error: categoryError } = useQuery({
+    useEffect(() => {
+        if (newsItem?.pictureUrl) {
+            setPreview(newsItem.pictureUrl);
+        }
+    }, [newsItem]);
+
+    const { data: categoryData, isLoading: categoryLoading } = useQuery({
         queryKey: ["categories"],
         queryFn: getCategories,
         retry: true,
@@ -93,7 +126,7 @@ const NewsForm = ({ user }: { user: User }) => {
         enabled: !!user,
     });
 
-    const { data: authorData, isLoading: authorLoading, error: authorError } = useQuery({
+    const { data: authorData, isLoading: authorLoading } = useQuery({
         queryKey: ["authors"],
         queryFn: getAuthors,
         retry: true,
@@ -123,22 +156,25 @@ const NewsForm = ({ user }: { user: User }) => {
         },
     });
 
+    const updateNewsMutation = useMutation({
+        mutationFn: updateNews,
+        onSuccess: () => {
+            setStatus("success");
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        },
+        onError: (error) => {
+            setStatus("error");
+            setError(error instanceof Error ? error.message : "Failed to update news");
+        },
+    });
+
     useEffect(() => {
         if (categoryData && authorData) {
             setLoading(false);
         }
     }, [categoryData, authorData]);
-
-    useEffect(() => {
-        if (categoryError || authorError) {
-            setError("Failed to fetch categories and authors");
-        }
-    }, [categoryError, authorError]);
-
-    // useEffect(() => {
-    //     console.log(form.getValues());
-    // }, [form.watch()]);
-
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         if (acceptedFiles?.length > 0) {
@@ -149,7 +185,6 @@ const NewsForm = ({ user }: { user: User }) => {
             form.setValue("pictureUrl", file.name);
         }
     }, [form]);
-
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -166,29 +201,28 @@ const NewsForm = ({ user }: { user: User }) => {
         }
         setPreview(null);
         form.setValue("pictureUrl", "");
+        setUploadedFile(null);
     };
 
     const onSubmit = async (data: NewsFormData) => {
         try {
             setError(null);
+            let photoUrl = newsItem?.pictureUrl || "";
+            let photoPath = newsItem?.picturePath || "";
 
-            if (!uploadedFile) {
-                setError("Please upload an image");
-                return;
+            if (uploadedFile) {
+                setStatus("uploading-image");
+                const imageResult = await uploadImageMutation.mutateAsync({
+                    file: uploadedFile,
+                    oldPhotoUrl: newsItem?.pictureUrl,
+                    oldFullPath: newsItem?.picturePath
+                });
+                photoUrl = imageResult.publicUrl;
+                photoPath = imageResult.fullPath;
             }
 
-            setStatus("uploading-image");
-            const imageResult = await uploadImageMutation.mutateAsync({
-                file: uploadedFile,
-            });
-
-            let photoUrl = imageResult.publicUrl;
-            let photoPath = imageResult.fullPath;
-
-            //print the whole data to be sent to the server
-
             setStatus("creating-news");
-            await createNewsMutation.mutateAsync({
+            const newsData = {
                 pictureUrl: photoUrl,
                 picturePath: photoPath,
                 authorId: data.authorId,
@@ -204,7 +238,17 @@ const NewsForm = ({ user }: { user: User }) => {
                 headingUrd: data.heading_ur,
                 taglineUrd: data.tagLine_ur,
                 contentUrd: data.content_ur,
-            });
+            };
+
+            if (newsItem) {
+                await updateNewsMutation.mutateAsync({
+                    newsId: newsItem.id,
+                    ...newsData,
+                    oldPicturePath: newsItem.picturePath
+                });
+            } else {
+                await createNewsMutation.mutateAsync(newsData);
+            }
         } catch (error) {
             setStatus("error");
             setError(error instanceof Error ? error.message : "Something went wrong");
@@ -366,6 +410,12 @@ const NewsForm = ({ user }: { user: User }) => {
                                                     label: author.name
                                                 }))}
                                                 placeholder="Select an author"
+                                                value={authorData
+                                                    ?.map((author: { id: string; name: string }) => ({
+                                                        value: author.id,
+                                                        label: author.name,
+                                                    }))
+                                                    .find(option => option.value === field.value) || null}
                                                 onChange={(selectedOption: any) => field.onChange(selectedOption?.value)}
                                             />
                                         </FormControl>
@@ -373,6 +423,7 @@ const NewsForm = ({ user }: { user: User }) => {
                                     </FormItem>
                                 )}
                             />
+
 
                             {/* Category ID */}
                             <FormField
@@ -390,6 +441,12 @@ const NewsForm = ({ user }: { user: User }) => {
                                                     label: category.name
                                                 }))}
                                                 placeholder="Select a category"
+                                                value={categoryData
+                                                    ?.map((category: { id: string; name: string }) => ({
+                                                        value: category.id,
+                                                        label: category.name,
+                                                    }))
+                                                    .find(option => option.value === field.value) || null}
                                                 onChange={(selectedOption: any) => field.onChange(selectedOption?.value)}
                                             />
                                         </FormControl>
@@ -397,6 +454,7 @@ const NewsForm = ({ user }: { user: User }) => {
                                     </FormItem>
                                 )}
                             />
+
 
                             {/* Tags */}
                             <FormField
