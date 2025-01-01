@@ -18,6 +18,9 @@ export const getAuthors = async () => {
                 id: true,
                 name: true,
             },
+            where:{
+                active:true
+            }
         });
         return authors;
     } catch (e) {

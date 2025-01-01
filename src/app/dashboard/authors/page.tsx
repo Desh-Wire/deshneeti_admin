@@ -24,7 +24,7 @@ const Authors = () => {
         enabled: !!user,
     });
 
-    const handleUpdateAuthor = async (updatedData: { name: string; photoUrl?: string,fullPath?:string }) => {
+    const handleUpdateAuthor = async (updatedData: { name: string; photoUrl?: string, fullPath?: string, active: boolean }) => {
         try {
             const updatedAuthor = await updateAuthor({
                 authorId: selectedAuthor.id,
@@ -32,6 +32,7 @@ const Authors = () => {
                 email: selectedAuthor.email,
                 photoUrl: updatedData.photoUrl || null,
                 fullPath: updatedData.fullPath || null,
+                active: updatedData.active,
             });
             // Update the UI after the successful update
             setSelectedAuthor(updatedAuthor);
@@ -80,8 +81,11 @@ const Authors = () => {
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                                     {data?.authors.map((author: any) => (
-                                        <div key={author.id} className="relative p-6 bg-gray-100 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300">
-                                            {/* Show Update Button only if the logged-in user is the one who created the author */}
+                                        <div
+                                            key={author.id}
+                                            className={`relative p-6 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300 ${author.active ? 'bg-gray-100' : 'bg-gray-200 opacity-75'
+                                                }`}
+                                        >
                                             {author.email === user.email && (
                                                 <button
                                                     className="absolute top-2 right-2 text-gray-500 hover:text-blue-500"
@@ -93,12 +97,19 @@ const Authors = () => {
                                                     <Pencil size={18} />
                                                 </button>
                                             )}
-                                            {/* Author Details */}
-                                            <img
-                                                src={author.photoUrl || '/default-avatar.png'}
-                                                alt={author.name}
-                                                className="w-24 h-24 mx-auto rounded-full object-cover mb-4"
-                                            />
+                                            <div className="relative">
+                                                <img
+                                                    src={author.photoUrl || '/default-avatar.png'}
+                                                    alt={author.name}
+                                                    className={`w-24 h-24 mx-auto rounded-full object-cover mb-4 ${!author.active && 'grayscale'
+                                                        }`}
+                                                />
+                                                {!author.active && (
+                                                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                                        Inactive
+                                                    </span>
+                                                )}
+                                            </div>
                                             <span className="text-3xl font-extrabold text-gray-800">{author.name}</span>
                                             <p className="mt-2 text-gray-600">Total News Items: {author._count.newsItems}</p>
                                         </div>

@@ -21,6 +21,7 @@ export const getAuthorsStats = async () => {
                 photoUrl: true,
                 email: true,
                 fullPath: true,
+                active: true,
 
                 _count: {
                     select: {
@@ -124,12 +125,14 @@ export const updateAuthor = async ({
     email,
     photoUrl,
     fullPath,
+    active
 }: {
     authorId: string;
     authorName: string;
     email: string;
     photoUrl: string | null;
     fullPath: string | null;
+    active: boolean;
 }) => {
     try {
         const supabase = await createClient();
@@ -146,6 +149,7 @@ export const updateAuthor = async ({
                 email: email,
                 photoUrl: photoUrl || undefined,
                 fullPath: fullPath || undefined,
+                active: active 
             },
         });
 

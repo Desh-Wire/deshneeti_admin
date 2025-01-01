@@ -7,44 +7,44 @@ import { updateAuthor, uploadAuthorImage } from "./actions";
 interface UpdateAuthorModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onUpdate: (updatedData: { name: string; photoUrl?: string }) => void;
-    currentAuthor: { id: string; name: string; photoUrl?: string; email: string, fullPath?:string };
+    onUpdate: (updatedData: { name: string; photoUrl?: string, active: boolean }) => void;
+    currentAuthor: { id: string; name: string; photoUrl?: string; email: string, fullPath?: string, active: boolean };
 }
 
 const UpdateAuthorModal = ({ isOpen, onClose, onUpdate, currentAuthor }: UpdateAuthorModalProps) => {
     const [name, setName] = useState(currentAuthor.name);
     const [file, setFile] = useState<File | null>(null);
+    const [active, setActive] = useState<boolean>(currentAuthor.active);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-    
+
         try {
             let photoUrl = currentAuthor.photoUrl;
             let fullPath = currentAuthor.fullPath;
-    
-            // Upload new image if a file is provided
+
             if (file) {
-                const response = await uploadAuthorImage({ 
+                const response = await uploadAuthorImage({
                     file,
                     oldPhotoUrl: currentAuthor.photoUrl,
-                    oldFullPath: currentAuthor.fullPath // Pass the old fullPath
+                    oldFullPath: currentAuthor.fullPath
                 });
-                
+
                 photoUrl = response.publicUrl;
                 fullPath = response.fullPath;
             }
-    
-            // Update the author in the database
+
             const updatedData = await updateAuthor({
                 authorId: currentAuthor.id,
                 authorName: name,
                 email: currentAuthor.email,
                 photoUrl: photoUrl ?? null,
                 fullPath: fullPath ?? null,
+                active: active,
             });
-    
+
             onUpdate(updatedData);
             onClose();
             window.location.reload();
@@ -64,7 +64,6 @@ const UpdateAuthorModal = ({ isOpen, onClose, onUpdate, currentAuthor }: UpdateA
                 <h2 className="text-2xl font-bold mb-4 text-center">Update Author</h2>
 
                 <form onSubmit={handleSubmit}>
-                    {/* Current Author Photo */}
                     <div className="mb-4 text-center">
                         <img
                             src={currentAuthor.photoUrl || '/default-avatar.png'}
@@ -80,7 +79,6 @@ const UpdateAuthorModal = ({ isOpen, onClose, onUpdate, currentAuthor }: UpdateA
                         />
                     </div>
 
-                    {/* Name Field */}
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Name</label>
                         <input
@@ -92,7 +90,18 @@ const UpdateAuthorModal = ({ isOpen, onClose, onUpdate, currentAuthor }: UpdateA
                         />
                     </div>
 
-                    {/* Buttons */}
+                    <div className="mb-6">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={active}
+                                onChange={(e) => setActive(e.target.checked)}
+                                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">Active Author</span>
+                        </label>
+                    </div>
+
                     <div className="flex justify-end gap-2">
                         <button
                             type="button"
