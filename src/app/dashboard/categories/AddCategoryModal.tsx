@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { addCategory } from './actions'; // Import the addCategory action
+import { addCategory, searchCategory } from './actions'; // Import the addCategory action
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react'; // For loading spinner
@@ -27,7 +27,21 @@ const AddCategoryModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =>
         },
     });
 
+    const searchCategoryMutation = useMutation({
+        mutationKey: ["searchCategory"],
+        mutationFn: searchCategory,
+        onError: (error) => {
+            console.error(error);
+        },
+    })
+
     const handleCategorySubmit = async () => {
+        // check if the category already exists
+        const data  = await searchCategoryMutation.mutateAsync(categoryName);
+        if (data && data.length > 0) {
+            alert("Category already exists");
+            return;
+        }
         setIsLoading(true);
         await categoryMutation.mutateAsync(categoryName);  // This should now match the expected types
     };

@@ -102,3 +102,36 @@ export const deleteCategory = async (categoryId: string) => {
         throw new Error("Failed to delete category");
     }
 }
+
+export const searchCategory = async (category:string) => {
+    try {
+        const supabase = await createClient();
+        const user = await supabase.auth.getUser();
+
+        if (!user) {
+            throw new Error("You must be logged in to view this page");
+        }
+
+        const categories = await db.category.findMany({
+            where: {
+                name: {
+                    contains: category,
+                    mode: "insensitive",
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+                _count: {
+                    select: {
+                        newsItems: true,
+                    },
+                },
+            },
+        });
+
+        return categories;
+    } catch (e) {
+        console.log(e);
+    }
+}

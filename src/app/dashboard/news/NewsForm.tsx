@@ -463,7 +463,7 @@ const NewsForm = ({ user, newsItem }: NewsFormProps) => {
                                 rules={{
                                     required: "Tags are required",
                                     pattern: {
-                                        value: /^[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*$/,
+                                        value: /^[a-zA-Z0-9.\s]+(\s*,\s*[a-zA-Z0-9.\s]+)*$/,
                                         message: "Please enter comma-separated tags"
                                     }
                                 }}
