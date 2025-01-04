@@ -405,24 +405,37 @@ const NewsForm = ({ user, newsItem }: NewsFormProps) => {
                                         <FormControl>
                                             <Select
                                                 styles={customStyles}
-                                                options={authorData?.map((author: { id: string; name: string }) => ({
+                                                options={authorData?.map((author) => ({
                                                     value: author.id,
-                                                    label: author.name
+                                                    label: author.name,
+                                                    photoUrl: author.photoUrl,
                                                 }))}
                                                 placeholder="Select an author"
                                                 value={authorData
-                                                    ?.map((author: { id: string; name: string }) => ({
+                                                    ?.map((author) => ({
                                                         value: author.id,
                                                         label: author.name,
+                                                        photoUrl: author.photoUrl,
                                                     }))
-                                                    .find(option => option.value === field.value) || null}
+                                                    .find((option) => option.value === field.value) || null}
                                                 onChange={(selectedOption: any) => field.onChange(selectedOption?.value)}
+                                                formatOptionLabel={(option) => (
+                                                    <div className="flex items-center space-x-2">
+                                                        <img
+                                                            src={option.photoUrl}
+                                                            alt={option.label}
+                                                            className="w-6 h-6 rounded-full"
+                                                        />
+                                                        <span>{option.label}</span>
+                                                    </div>
+                                                )}
                                             />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+
 
 
                             {/* Category ID */}

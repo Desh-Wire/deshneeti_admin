@@ -17,6 +17,7 @@ export const getAuthors = async () => {
             select: {
                 id: true,
                 name: true,
+                photoUrl: true,
             },
             where:{
                 active:true

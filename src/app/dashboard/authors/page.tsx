@@ -86,7 +86,7 @@ const Authors = () => {
                                             className={`relative p-6 rounded-lg shadow-md text-center hover:shadow-lg transition-shadow duration-300 ${author.active ? 'bg-gray-100' : 'bg-gray-200 opacity-75'
                                                 }`}
                                         >
-                                            {author.email === user.email && (
+                                            {(author.email === user.email || user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL) && (
                                                 <button
                                                     className="absolute top-2 right-2 text-gray-500 hover:text-blue-500"
                                                     onClick={() => {
