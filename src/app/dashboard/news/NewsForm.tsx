@@ -493,6 +493,11 @@ const NewsForm = ({ user, newsItem }: NewsFormProps) => {
                                         <FormDescription className="text-xs">
                                             Enter tags separated by commas
                                         </FormDescription>
+                                        <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
+                                            <p className="text-sm text-gray-600 mb-1">Special tags must match exact spelling:</p>
+                                            <p className="text-sm font-mono text-gray-700">Videos, Editors Choice, Opinions, Analysis</p>
+                                            <p className="text-xs text-gray-500 mt-1">Articles with incorrectly spelled special tags will not appear in their respective sections.</p>
+                                        </div>
                                         <FormMessage />
                                     </FormItem>
                                 )}
