@@ -47,3 +47,13 @@ model NewsItem {
   readTime   Int
   views      Int      @default(0)
 }
+
+model viewLogs {
+    id        String   @id @default(uuid())
+    newsId    String
+    ip        String
+    timestamp DateTime @default(now())
+
+    @@index([newsId, ip, timestamp])
+}
+
