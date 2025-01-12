@@ -77,8 +77,8 @@ const AddAuthorModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
 
             setStatus("uploading");
 
-            let photoUrl = null;
-            let fullPath = null;
+            let photoUrl = "";
+            let fullPath = "";
             if (file) {
                 const response = await uploadMutation.mutateAsync({ file });
                 photoUrl = response.publicUrl; // Ensure uploadAuthorImage returns the URL
