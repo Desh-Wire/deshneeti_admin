@@ -67,6 +67,7 @@ export const createNews = async ({
     categoryId,
     tags,
     readTime,
+    youtube,
 }: {
     headingEng: string;
     headingHin: string;
@@ -83,6 +84,7 @@ export const createNews = async ({
     categoryId: string;
     tags: string[];
     readTime: number;
+    youtube?: string;
 }) => {
     try {
         const supabase = await createClient();
@@ -108,7 +110,8 @@ export const createNews = async ({
                 authorId,
                 categoryId,
                 tags,
-                readTime
+                readTime,
+                youtube: youtube || ""
             }
         });
 
@@ -284,6 +287,7 @@ export const updateNews = async ({
     categoryId,
     tags,
     readTime,
+    youtube,
     oldPicturePath
 }: {
     newsId: string;
@@ -302,6 +306,7 @@ export const updateNews = async ({
     categoryId: string;
     tags: string[];
     readTime: number;
+    youtube?: string;
     oldPicturePath?: string | null;
 }) => {
     try {
@@ -341,7 +346,8 @@ export const updateNews = async ({
                 authorId,
                 categoryId,
                 tags,
-                readTime
+                readTime,
+                youtube: youtube || ""
             }
         });
 

@@ -25,35 +25,35 @@ model Author {
 }
 
 model NewsItem {
-  id         String   @id @default(cuid())
-  headingEng String
-  headingHin String
-  headingUrd String
-  taglineEng String
-  taglineHin String
-  taglineUrd String
-  pictureUrl String
+  id          String   @id @default(cuid())
+  headingEng  String
+  headingHin  String
+  headingUrd  String
+  taglineEng  String
+  taglineHin  String
+  taglineUrd  String
+  pictureUrl  String
   picturePath String
-  contentEng String
-  contentHin String
-  contentUrd String
-  authorId   String
-  author     Author   @relation(fields: [authorId], references: [id])
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-  tags       String[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  readTime   Int
-  views      Int      @default(0)
+  contentEng  String
+  contentHin  String
+  contentUrd  String
+  authorId    String
+  author      Author   @relation(fields: [authorId], references: [id])
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  readTime    Int
+  views       Int      @default(0)
+  youtube     String   @default("")
 }
 
 model viewLogs {
-    id        String   @id @default(uuid())
-    newsId    String
-    ip        String
-    timestamp DateTime @default(now())
+  id        String   @id @default(uuid())
+  newsId    String
+  ip        String
+  timestamp DateTime @default(now())
 
-    @@index([newsId, ip, timestamp])
+  @@index([newsId, ip, timestamp])
 }
-

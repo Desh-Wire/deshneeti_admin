@@ -49,6 +49,7 @@ interface NewsItem {
     createdAt: string;
     readTime: number;
     views: number;
+    youtube?: string; // Add optional youtube field
     tags: string[];
 }
 
@@ -58,6 +59,7 @@ interface NewsFormData {
     categoryId: string;
     tags: string;
     readTime: string;
+    youtube?: string; // Add optional youtube field
     heading_en: string;
     tagLine_en: string;
     content_en: string;
@@ -100,6 +102,7 @@ const NewsForm = ({ user, newsItem }: NewsFormProps) => {
             categoryId: newsItem?.category.id || "",
             tags: newsItem?.tags.join(", ") || "",
             readTime: newsItem?.readTime.toString() || "",
+            youtube: newsItem?.youtube || "", // Add youtube default value
             heading_en: newsItem?.headingEng || "",
             tagLine_en: newsItem?.taglineEng || "",
             content_en: newsItem?.contentEng || "",
@@ -229,6 +232,7 @@ const NewsForm = ({ user, newsItem }: NewsFormProps) => {
                 categoryId: data.categoryId,
                 tags: data.tags.split(",").map((tag) => tag.trim()),
                 readTime: parseInt(data.readTime),
+                youtube: data.youtube, // Include youtube field
                 headingEng: data.heading_en,
                 taglineEng: data.tagLine_en,
                 contentEng: data.content_en,
@@ -525,6 +529,27 @@ const NewsForm = ({ user, newsItem }: NewsFormProps) => {
                                                 {...field}
                                             />
                                         </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="youtube"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-semibold">YouTube Link (Optional)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="text"
+                                                placeholder="https://youtube.com/watch?v=..."
+                                                className="border-gray-300"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormDescription className="text-xs">
+                                            Add a YouTube video link if available
+                                        </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}

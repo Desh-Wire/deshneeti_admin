@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Clock, Eye, Calendar, Tag, Type, Quote, FileText, Trash2, Edit } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Eye, Calendar, Tag, Type, Quote, FileText, Trash2, Edit, Youtube } from 'lucide-react';
 import Image from 'next/image';
 import { convertFromRaw, Editor, EditorState } from 'draft-js';
 import { deleteNews } from './actions'; // adjust the import path as needed
@@ -22,6 +22,7 @@ interface NewsItem {
     contentEng: string;
     contentHin: string;
     contentUrd: string;
+    youtube: string; // Add this field
     author: {
         id: string;
         name: string;
@@ -125,10 +126,10 @@ const NewsResults = ({ results, user }: { results: NewsItem[], user: User }) => 
                                             <NewsForm
                                                 user={user}
                                                 newsItem={editingNews}
-                                                // onClose={() => {
-                                                //     setIsModalOpen(false);
-                                                //     setEditingNews(null);
-                                                // }}
+                                            // onClose={() => {
+                                            //     setIsModalOpen(false);
+                                            //     setEditingNews(null);
+                                            // }}
                                             />
                                         )}
                                     </DialogContent>
@@ -246,6 +247,25 @@ const NewsResults = ({ results, user }: { results: NewsItem[], user: User }) => 
                                         </div>
                                     </div>
                                 ))}
+
+                                {item.youtube && (
+                                    <div className="pt-4">
+                                        <div className="flex items-center gap-2 text-red-600 mb-3">
+                                            <Youtube size={16} />
+                                            <span className="text-sm font-medium">YouTube Link</span>
+                                        </div>
+                                        <div className="pl-6">
+                                            <a
+                                                href={item.youtube}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:text-blue-800 hover:underline break-all"
+                                            >
+                                                {item.youtube}
+                                            </a>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="pt-4">
                                     <div className="flex items-center gap-2 text-red-600 mb-3">

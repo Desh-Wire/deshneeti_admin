@@ -15,23 +15,24 @@ const Dashboard = () => {
     const { user, loading } = useProtectedRoute();
     const [searchQuery, setSearchQuery] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [results, setResults] = useState<{ 
-        id: string; 
-        authorId: string; 
-        headingEng: string; 
-        headingHin: string; 
-        headingUrd: string; 
-        taglineEng: string; 
-        taglineHin: string; 
-        taglineUrd: string; 
-        contentEng: string; 
-        contentHin: string; 
-        contentUrd: string; 
-        imageUrl: string; 
-        publishedAt: string; 
-        views: number; 
-        author: { id: string; name: string; photoUrl: string; email: string; }; 
-        category: { id:string, name: string; }; 
+    const [results, setResults] = useState<{
+        id: string;
+        authorId: string;
+        headingEng: string;
+        headingHin: string;
+        headingUrd: string;
+        taglineEng: string;
+        taglineHin: string;
+        taglineUrd: string;
+        contentEng: string;
+        contentHin: string;
+        contentUrd: string;
+        imageUrl: string;
+        publishedAt: string;
+        views: number;
+        youtube: string; // Add this field
+        author: { id: string; name: string; photoUrl: string; email: string; };
+        category: { id: string, name: string; };
         pictureUrl: string;
         picturePath: string;
         createdAt: string;
@@ -51,13 +52,13 @@ const Dashboard = () => {
                 createdAt: item.createdAt || '',
                 readTime: item.readTime || 0,
                 tags: item.tags || [],
+                youtube: item.youtube || '', // Add this field
                 author: {
                     ...item.author,
                     id: item.author.id || '',
                 },
             }));
             setResults(formattedData);
-            // console.log('formattedData:', formattedData);
         }
     });
 
